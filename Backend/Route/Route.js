@@ -60,13 +60,20 @@ Routes.post("/login", async (req, resp) => {
     //   if (!result.service) return Handle(resp,401,"Your service is disabled");
 const payload={id:result._id}
 const token= jwt.sign(payload,process.env.JSON_SECRET_KEY)
-    return Handle(resp,202,"login successfully",token)
+    return Handle(resp,202,"login successfully",{token,role:result.role})
     }
     return Handle(resp,401,"Invalid Password");
   } catch (error) {
     return Handle(resp,500,"Internal Server error",null,error);
   }
 });
+Routes.post("/fetchuserdetails",checkuserdetails, async(req,resp)=>{
+  const payload={id:result._id}
+  const token= jwt.sign(payload,process.env.JSON_SECRET_KEY)
+      return Handle(resp,202,"login successfully",{token,role:result.role})
+    
+
+})
 Routes.post("/enable", async (req, resp) => {
   try {
     const { id } = req.body;
