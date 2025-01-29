@@ -1,16 +1,17 @@
 import React, { useState } from 'react'
 import {Link} from 'react-router-dom'
-const ShopkeeperHeader = () => {
+
+const ExecutiveHeader = () => {
 const[Toggle,setToggle]=useState(false)
   return (
-  <div className={Toggle?"menu":""}>
+    <div className={Toggle?"menu":""}>
     <div id="layout-wrapper">
         <header id="page-topbar">
             <div className="layout-width">
                 <div className="navbar-header">
                     <div className="d-flex">
                         <div className="navbar-brand-box horizontal-logo">
-                            <Link to={'/Dashboard'} className="logo logo-dark">
+                            <Link to={'/ExecutiveInvoices'} className="logo logo-dark">
                                 <span className="logo-sm">
                                     <img src="assets/images/logo-sm.png" height={22} />
                                 </span>
@@ -18,7 +19,7 @@ const[Toggle,setToggle]=useState(false)
                                     <img src="assets/images/logo-dark.png" height={21} />
                                 </span>
                             </Link>
-                            <Link to={'/Dashboard'} className="logo logo-light">
+                            <Link to={'/ExecutiveInvoices'} className="logo logo-light">
                                 <span className="logo-sm">
                                     <img src="assets/images/logo-sm.png" height={22} />
                                 </span>
@@ -39,7 +40,7 @@ const[Toggle,setToggle]=useState(false)
                                         <span className="text-start ms-xl-2">
                                             <span className="d-none d-xl-inline-block fw-medium user-name-text fs-16">You
                                                 <i className="las la-angle-down fs-12 ms-1" /></span>
-                                        </span>
+                                            </span>
                                     </span>
                                 </button>
                                 <div className="dropdown-menu dropdown-menu-end">
@@ -52,7 +53,7 @@ const[Toggle,setToggle]=useState(false)
         </header>
         <div className="app-menu navbar-menu">
             <div className="navbar-brand-box">
-                <Link to='/Dashboard' className="logo logo-dark">
+                <Link to='/ExecutiveInvoices' className="logo logo-dark">
                     <span className="logo-sm">
                         <img src="assets/images/logo-sm.png" height={22} />
                     </span>
@@ -60,7 +61,7 @@ const[Toggle,setToggle]=useState(false)
                         <img src="assets/images/logo-dark.png" height={21} />
                     </span>
                 </Link>
-                <Link to='/Dashboard' className="logo logo-light">
+                <Link to='/ExecutiveInvoices' className="logo logo-light">
                     <span className="logo-sm">
                         <img src="assets/images/logo-sm.png" height={22} />
                     </span>
@@ -79,28 +80,18 @@ const[Toggle,setToggle]=useState(false)
                         <li className="menu-title"><span data-key="t-menu">Menu</span></li>
                         <li className="menu-title"><i className="ri-more-fill"/><span data-key="t-pages">Pages</span></li>           
                         <li className="nav-item">
-                            <Link to={'/Dashboard'} className="nav-link menu-link" href="#" >     
-                                <i className="las la-house-damage" /><span data-key="t-SignUp">Dashboard</span>
+                            <Link to={'/ExecutiveInvoices'} className="nav-link menu-link" href="#" >     
+                                <i className="las la-plus" /><span data-key="t-SignUp">Create Invoice</span>
                             </Link>
                         </li>
                         <li className="nav-item">
-                            <Link to={'/Invoice'} className="nav-link menu-link" href="#" >     
-                                <i className="las la-plus" /><span data-key="t-SignUp">Invoice</span>
+                            <Link to={'/ExecutiveCustomers'} className="nav-link menu-link" href="#" >     
+                                <i className="las la-user" /><span>Customers</span>
                             </Link>
                         </li>
                         <li className="nav-item">
-                            <Link to={'/Customers'} className="nav-link menu-link"  >     
-                                <i className="las la-user" /><span data-key="t-SignUp">Our Customers</span>
-                            </Link>
-                        </li>
-                        <li className="nav-item">
-                            <Link to={'/UploadExcel'} className="nav-link menu-link" href="#" >
-                                <i className="las la-list"/><span>Upload Excel</span>
-                            </Link>
-                        </li>
-                        <li className="nav-item">
-                            <Link to={'/Executive'} className="nav-link menu-link" href="#" >
-                                <i className="las la-file-invoice-dollar"/><span>Manage your Excecutive</span>
+                            <Link to={'/ExecutiveProducts'} className="nav-link menu-link" href="#" >
+                                <i className="las la-list"/><span>All Products</span>
                             </Link>
                         </li>
                         <li className="nav-item">
@@ -115,6 +106,7 @@ const[Toggle,setToggle]=useState(false)
         </div>
     </div>
   </div>
-  )}
+  )
+}
 
-export default ShopkeeperHeader
+export default ExecutiveHeader
