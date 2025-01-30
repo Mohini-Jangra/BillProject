@@ -7,31 +7,26 @@ import AddProductModal from './AddProductModal'
 const AllProductsComponent = () => {
    const [EditProductToggle,setEditProductToggle]=useState(false)
    const [AddProductToggle,setAddProductToggle]=useState(false)
-   const[obj,setobj]= useState([])
-//    useEffect(()=>{
-//          show()
-//        },[])
+   const[obj,setobj]= useState("")
+   useEffect(()=>{
+         show()
+       },[])
 
-//        async function show(){
-//         const response= await fetch("http://localhost:3010/api/getproducts",{
-        
-//             method:"post",
-//             headers:{
-//                 "Content-Type":"application/json"
-//             }
-//         })
-//          console.log(response)
-//        }
-async function add(){
-    const response= await fetch("http://localhost:3010/api/addproduct",{
-        body:JSON.stringify(obj),
-        method:"post",
-        headers:{
-            "Content-Type":"application/json"
+       async function show(){
+        const response= await fetch("http://localhost:4010/api/getproducts",{
+            headers:{
+                "Content-Type":"application/json"
+            }
+        })
+        const result=await  response.json()
+        alert(result?.message)
+        console.log(response)
+         if(response.status===202){
+          
+            setobj(result.data)
+         }
         }
-    })
-    console.log(response)
-}
+
    return (
         <div>
             <div className="main-content">
@@ -40,7 +35,7 @@ async function add(){
                         <Title Name="All Products"/>
                         <div className="row pb-4 gy-3">
                             <div className="col-sm-4">
-                                <button onChange={add} className="btn btn-primary addPayment-modal" onClick={()=>setAddProductToggle(!AddProductToggle)} ><i className="las la-plus me-1" /> Add Products</button>
+                                <button className="btn btn-primary addPayment-modal" onClick={()=>setAddProductToggle(!AddProductToggle)} ><i className="las la-plus me-1" /> Add Products</button>
                             </div>
                             <div className="col-sm-auto ms-auto">
                                 <div className="d-flex gap-3">
@@ -89,12 +84,14 @@ async function add(){
                                                             <table className="table table-hover table-nowrap align-middle mb-0">
                                                                 <thead className="table-light">
                                                                     <tr className="text-muted text-uppercase">
-                                                                        <th scope="col">Member</th>
-                                                                        <th scope="col">Date</th>
-                                                                        <th scope="col">Payment Details</th>
-                                                                        <th scope="col" style={{ width: '16%' }}>Payment Type</th>
-                                                                        <th scope="col" style={{ width: '12%' }}>Amount</th>
-                                                                        <th scope="col" style={{ width: '12%' }}>Status</th>
+                                                                        <th scope="col">Name</th>
+                                                                        <th scope="col">Model</th>
+                                                                        <th scope="col">Description</th>
+                                                                        <th scope="col" style={{ width: '16%' }}>Price</th>
+                                                                        <th scope="col" style={{ width: '12%' }}>Rate</th>
+                                                                        <th scope="col" style={{ width: '12%' }}>Tax</th>
+                                                                        <th scope="col" style={{ width: '12%' }}>Discount</th>
+                                                                        <th scope="col" style={{ width: '12%' }}>Stock</th>
                                                                         <th scope="col" style={{ width: '12%' }}>Action</th>
                                                                     </tr>
                                                                 </thead>

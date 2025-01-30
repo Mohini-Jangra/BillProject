@@ -11,4 +11,4 @@ Connection()
 
 app.use("/api",Routes)
 
-app.listen(3010,()=>console.log("Server started at:3010"))
+app.listen(4010,()=>console.log("Server started at:4010"))

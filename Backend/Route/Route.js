@@ -68,9 +68,9 @@ const token= jwt.sign(payload,process.env.JSON_SECRET_KEY)
   }
 });
 Routes.post("/fetchuserdetails",checkuserdetails, async(req,resp)=>{
-  const payload={id:result._id}
+  const payload={id:req.user._id}
   const token= jwt.sign(payload,process.env.JSON_SECRET_KEY)
-      return Handle(resp,202,"login successfully",{token,role:result.role})
+      return Handle(resp,202,"login successfully",{role:req.user.role,token})
     
 
 })
@@ -160,6 +160,43 @@ Routes.put("/updateproduct/:id",checkuserdetails,async(req,resp)=>{
     } catch (error) {
         return Handle(resp,500,"Internal Server error",null,error);
     }
+})
+
+const validateObjectKeys = (object, schema) => {
+  const schemaKeys = Object.keys(schema.paths).filter((key) => key !== '__v' && key !== '_id' && key !== 'createdat');
+  const objectKeys = Object.keys(object);
+
+  for (const key of schemaKeys) {
+    if (!object.hasOwnProperty(key) || object[key] === null || object[key] === '') return "The key "+key+" is missing or empty."
+  }
+
+  for (const key of objectKeys) {
+    if (!schemaKeys.includes(key)) return "The key "+key+" is not declared in the schema."
+  }
+
+  return null;
+};
+Routes.post("/addmultipleproducts",checkuserdetails,async(req,resp)=>{
+  try {
+      const {items} = req.body;
+      if (!Array.isArray(items) || items.length === 0) return HandleResponse(resp,400,'Invalid input. Provide an array of items.')
+      const updateditems= items.map(item=>{return {...item,userid:req.user._id}})
+      const errors = [];
+      updateditems.map(async(item,index)=>{
+          const validationError = validateObjectKeys(item, Product.schema);
+          if (validationError) errors.push({ index, error: validationError })
+      
+          const existingproduct = await Product.findOne({ model: item.model });
+          if(existingproduct) errors.push({ index, error: "The modelNumber " +item.model+" already exists."})
+      })    
+  
+      if(errors.length > 0) return Handle(resp,400,'Validation errors occurred.',null,errors);
+  
+      const result = await Product.insertMany(updateditems);
+      return Handle(resp,201,'All products are added successfully',result)
+    } catch (error) {
+      return Handle(resp,500,'Internal Server Error',null,error);
+      }
 })
 
 module.exports=Routes
