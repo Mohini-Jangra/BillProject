@@ -11,20 +11,22 @@ const Routes= express.Router()
 Routes.get("/Health", (req,resp) => {
    return resp.status(200).json({message:"Everything is going right way"})
 })
-try {
-    Routes.post("/verifyshopkeeper",async (req,resp) => {
-        const {name,phone,city,state,email,address,password}=req.body
-    if(!name || !phone ||!email || !address || !city || !state ||!password) return resp.status(404).send({message:"Filed is empty. Recheck it."})
-     
-        const existinguser= await User.findOne({email})
-        if(existinguser) return Handle(resp,404,"Email already exists. Please recheck and retry")
-    
-            const otp= generateotp(email)
-            return await otptoemailforverification(resp,email,otp)
-    })
-} catch (error) {
- return Handle(resp,500,"Internal server error.",null,error)   
-}
+Routes.post("/verifyshopkeeper",async (req,resp) => {
+  try{
+    const {name,phone,city,state,email,address,password}=req.body
+if(!name || !phone ||!email || !address || !city || !state ||!password) return resp.status(404).send({message:"Filed is empty. Recheck it."})
+
+  const existinguser= await User.findOne({email})
+  if(existinguser) return Handle(resp,404,"Email already exists. Please recheck and retry")
+
+      const otp= generateotp(email)
+      return await otptoemailforverification(resp,email,otp)
+  }
+  catch (error) {
+    return Handle(resp,500,"Internal server error.",null,error)   
+   }
+})
+ 
 
 Routes.post("/createshopkeeper",async (req,resp) => {
 try {
@@ -67,6 +69,15 @@ const token= jwt.sign(payload,process.env.JSON_SECRET_KEY)
     return Handle(resp,500,"Internal Server error",null,error);
   }
 });
+Routes.get("/getallusers",checkuserdetails,async(req,resp)=>{
+  try {
+    const users = await User.find({role:{$ne:'Superadmin'}}).select("-password")
+    if(users.length===0) return Handle(resp,400,"No user found")
+    return Handle(resp,202,"Users fetched successfully",users)
+  } catch (error) {
+    return Handle(resp,500,"Internal Server error",null,error)
+  }
+})
 Routes.post("/fetchuserdetails",checkuserdetails, async(req,resp)=>{
   const payload={id:req.user._id}
   const token= jwt.sign(payload,process.env.JSON_SECRET_KEY)
@@ -179,7 +190,7 @@ const validateObjectKeys = (object, schema) => {
 Routes.post("/addmultipleproducts",checkuserdetails,async(req,resp)=>{
   try {
       const {items} = req.body;
-      if (!Array.isArray(items) || items.length === 0) return HandleResponse(resp,400,'Invalid input. Provide an array of items.')
+      if (!Array.isArray(items) || items.length === 0) return Handle(resp,400,'Invalid input. Provide an array of items.')
       const updateditems= items.map(item=>{return {...item,userid:req.user._id}})
       const errors = [];
       updateditems.map(async(item,index)=>{
@@ -198,5 +209,93 @@ Routes.post("/addmultipleproducts",checkuserdetails,async(req,resp)=>{
       return Handle(resp,500,'Internal Server Error',null,error);
       }
 })
+
+Routes.get("/getallcitiesandstates",checkuserdetails,async(req,resp)=>{
+  try {
+   const response=await fetch("https://city-state.netlify.app/index.json")
+   const result=await response.json()
+   if(response.status===200 && result.length!==0) return Handle(resp,202,"Cities & States fetched successfully",result)
+   return Handle(resp,400,"Cities & States are not fetched successfully")
+  } catch (error) {
+   return Handle(resp,500,"Internal Server error",null,error)
+  }
+})
+
+
+
+
+Routes.post("/verifyexecutive",checkuserdetails,async (req, resp) => {
+  try {
+    const { name, phone, email, password, address, city, state } = req.body;
+
+    if (!name || !phone || !email || !password || !city || city==="None" || !address || !state || state==="None") return HandleResponse(resp,404,"Field is Empty")
+
+    const existinguser = await User.findOne({ email });
+    if (existinguser) return HandleResponse(resp,400,"Account already exists")
+
+    const otp = generateotp(email);
+    return await otptoemailforverification(resp, email, otp);
+  } catch (error) {
+    return HandleResponse(resp,500,"Internal Server Error",null,error);
+  }
+});
+Routes.post("/createexecutive",checkuserdetails,async (req, resp) => {
+  try {
+    const { name, phone, email, address, password, city, state, otp } =req.body;
+
+    if (!name || !phone || !email || !address || !city || city==="None" || !state || state==="None" || !password) return HandleResponse(resp,404,"Field is Empty")
+
+    if (!otp) return HandleResponse(resp,404,"Enter the otp");
+
+    const existinguser = await User.findOne({ email });
+    if (existinguser) return HandleResponse(resp,400,"Account already exists")
+
+    const response = verifyotp(email, otp);
+    if (!response.status) return HandleResponse(resp,404,response.message);
+
+    const result = await Executive.create({name,phone,email,password,address,city,state,executiveof:req.user._id});
+    return HandleResponse(resp,201,"Account created successfully",result);
+  } catch (error) {
+    return HandleResponse(resp,500,"Internal Server error",null,error)
+  }
+});
+Routes.get("/getallexecutives",checkuserdetails,async(req,resp)=>{
+  try {
+    const users = await Executive.find({executiveof:req.user._id}).select("-password")
+    if(users.length===0) return HandleResponse(resp,400,"No user found")
+    return HandleResponse(resp,202,"Users fetched successfully",users)
+  } catch (error) {
+    return HandleResponse(resp,500,"Internal Server error",null,error)
+  }
+})
+Routes.put("/enableexecutive",checkuserdetails, async (req, resp) => {
+  try {
+    const { id } = req.body;
+    if (!id) return HandleResponse(resp,404,"Plz Select the Executive");
+
+    const existinguser = await Executive.findOne({ _id: id });
+    if (!existinguser) return HandleResponse(resp,404,"Executive is not found");
+
+    const result = await Executive.updateOne({ _id: id },{ $set: { service: true } });
+    return HandleResponse(resp,202,"Service is enabled",result)
+  } catch (error) {
+    return HandleResponse(resp,500,"Internal Server error",null,error)
+  }
+});
+Routes.put("/disableexecutive",checkuserdetails, async (req, resp) => {
+  try {
+    const { id } = req.body;
+    if (!id) return HandleResponse(resp,404,"Plz Select the Executive");
+
+    const existinguser = await Executive.findOne({ _id: id });
+    if (!existinguser) return HandleResponse(resp,404,"Executive is not found");
+
+    const result = await Executive.updateOne({ _id: id },{ $set: { service: false } });
+    return HandleResponse(resp,202,"Service is disabled",result)
+  } catch (error) {
+    return HandleResponse(resp,500,"Internal Server error",null,error)
+  }
+});
+
 
 module.exports=Routes
