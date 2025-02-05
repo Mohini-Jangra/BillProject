@@ -1,6 +1,6 @@
 const express= require("express")
 const {generateotp, verifyotp}= require("../Services/OtpService/Otp")
-const { User, Shopkeeper } = require("../Model/UserModel/UserModel")
+const { User, Shopkeeper,Executive } = require("../Model/UserModel/UserModel")
 const { otptoemailforverification } = require("../Services/EmailService/Email")
 const Handle = require("../HandleResponse/HandleResponse")
 const Product= require("../Model/ProductModel/Product")
@@ -166,6 +166,7 @@ Routes.put("/updateproduct/:id",checkuserdetails,async(req,resp)=>{
         const response=await Product.findOne({model})
         if(response) return Handle(resp,400,"Product of this model is already exists in your product list")
 
+          
         const updatedproduct=await Product.updateOne({_id:id},{$set:{name,company,model,description,price,discount,rate,tax,stock}})
         return Handle(resp,202,"Product updated successfully",updatedproduct)
     } catch (error) {
@@ -245,57 +246,78 @@ Routes.post("/createexecutive",checkuserdetails,async (req, resp) => {
 
     if (!name || !phone || !email || !address || !city || city==="None" || !state || state==="None" || !password) return HandleResponse(resp,404,"Field is Empty")
 
-    if (!otp) return HandleResponse(resp,404,"Enter the otp");
+    if (!otp) return Handle(resp,404,"Enter the otp");
 
     const existinguser = await User.findOne({ email });
-    if (existinguser) return HandleResponse(resp,400,"Account already exists")
+    if (existinguser) return Handle(resp,400,"Account already exists")
 
     const response = verifyotp(email, otp);
-    if (!response.status) return HandleResponse(resp,404,response.message);
+    if (!response.status) return Handle(resp,404,response.message);
 
     const result = await Executive.create({name,phone,email,password,address,city,state,executiveof:req.user._id});
-    return HandleResponse(resp,201,"Account created successfully",result);
+    return Handle(resp,201,"Account created successfully",result);
   } catch (error) {
-    return HandleResponse(resp,500,"Internal Server error",null,error)
+       return Handle(resp,500,"Internal Server error",null,error)
   }
 });
 Routes.get("/getallexecutives",checkuserdetails,async(req,resp)=>{
   try {
     const users = await Executive.find({executiveof:req.user._id}).select("-password")
-    if(users.length===0) return HandleResponse(resp,400,"No user found")
-    return HandleResponse(resp,202,"Users fetched successfully",users)
+    if(users.length===0) return Handle(resp,400,"No user found")
+    return Handle(resp,202,"Users fetched successfully",users)
   } catch (error) {
-    return HandleResponse(resp,500,"Internal Server error",null,error)
+    return Handle(resp,500,"Internal Server error",null,error)
   }
 })
 Routes.put("/enableexecutive",checkuserdetails, async (req, resp) => {
   try {
     const { id } = req.body;
-    if (!id) return HandleResponse(resp,404,"Plz Select the Executive");
+    if (!id) return Handle(resp,404,"Plz Select the Executive");
 
     const existinguser = await Executive.findOne({ _id: id });
-    if (!existinguser) return HandleResponse(resp,404,"Executive is not found");
+    if (!existinguser) return Handle(resp,404,"Executive is not found");
 
     const result = await Executive.updateOne({ _id: id },{ $set: { service: true } });
-    return HandleResponse(resp,202,"Service is enabled",result)
+    return Handle(resp,202,"Service is enabled",result)
   } catch (error) {
-    return HandleResponse(resp,500,"Internal Server error",null,error)
+    return Handle(resp,500,"Internal Server error",null,error)
   }
 });
 Routes.put("/disableexecutive",checkuserdetails, async (req, resp) => {
   try {
     const { id } = req.body;
-    if (!id) return HandleResponse(resp,404,"Plz Select the Executive");
+    if (!id) return Handle(resp,404,"Plz Select the Executive");
 
     const existinguser = await Executive.findOne({ _id: id });
-    if (!existinguser) return HandleResponse(resp,404,"Executive is not found");
+    if (!existinguser) return Handle(resp,404,"Executive is not found");
 
     const result = await Executive.updateOne({ _id: id },{ $set: { service: false } });
-    return HandleResponse(resp,202,"Service is disabled",result)
+    return Handle(resp,202,"Service is disabled",result)
   } catch (error) {
-    return HandleResponse(resp,500,"Internal Server error",null,error)
+    return Handle(resp,500,"Internal Server error",null,error)
   }
 });
+Routes.post("/createcustomer",checkuserdetails,async(req,resp)=>{
+  try {
+    const {name,phone,address}=req.body
+    if(!name || !phone ||!address) return Handle(resp,404,"Field is Empty")
+    const existingcustomer=await Customer.findOne({phone,customerof:req.user._id})
+    if(existingcustomer) return Handle(resp,400,"Customer Already Exists")
+    const newCustomer=await Customer.create({name,phone,address,customerof:req.user._id})
+    return Handle(resp,201,"Customer created successfully",newCustomer)
+  } catch (error) {
+    return Handle(resp,500,"Internal Server Error",null,error)  
+  }
+})
+Routes.get("/getallcustomers",checkuserdetails,async(req,resp)=>{
+  try {
+    const existingcustomers=await Customer.find({customerof:req.user._id})
+    if(!existingcustomers || existingcustomers.length===0) return Handle(resp,404,"Customer list is empty")
+    return Handle(resp,202,"Customers fetched successfully",existingcustomers)
+  } catch (error) {
+    return Handle(resp,500,"Internal Server Error",null,error)  
+  }
+})
 
 
 module.exports=Routes

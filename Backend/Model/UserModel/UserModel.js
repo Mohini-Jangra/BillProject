@@ -39,7 +39,7 @@ const baseSchema= new mongoose.Schema(
         },
         service:{
             type:Boolean,
-            required:true,
+            default:true,
 
         },
         role:{

@@ -65,7 +65,7 @@ const CreateAccountModal = (props) => {
                 window.history.replaceState(null,null,"/")
                 return navigate("/",{replace:true})
             }
-            const response=await fetch("http://localhost:3010/api/verifyuser",{
+            const response=await fetch("http://localhost:3010/api/verifyshopkeeper",{
                 method:"post",
                 body:JSON.stringify(obj),
                 headers:{
@@ -95,7 +95,7 @@ const CreateAccountModal = (props) => {
                 window.history.replaceState(null,null,"/")
                 return navigate("/",{replace:true})
             }
-            const response=await fetch("http://localhost:3010/api/createuser",{
+            const response=await fetch("http://localhost:3010/api/createshopkeeper",{
                 method:"post",
                 body:JSON.stringify({...obj,otp}),
                 headers:{
