@@ -2,7 +2,7 @@ const mongoose=require("mongoose")
 const CustomerSchema=new mongoose.Schema({
     customerof:{
         type:mongoose.Schema.Types.ObjectId,
-        ref:process.env.MONGODB_USER_COLLECTION,
+        ref:process.env.MONGODB_USER_COLLECT,
         required:true
     },
     name:{
