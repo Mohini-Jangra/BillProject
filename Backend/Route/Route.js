@@ -1,4 +1,5 @@
 const express= require("express")
+const mongoose= require("mongoose") 
 const {generateotp, verifyotp}= require("../Services/OtpService/Otp")
 const { User, Shopkeeper,Executive } = require("../Model/UserModel/UserModel")
 const { otptoemailforverification } = require("../Services/EmailService/Email")
@@ -393,6 +394,7 @@ Routes.post("/createInvoice/:id",checkuserdetails,async(req, resp) => {
   const resultingItems=await OrderedItems.find({_id:{$in:allid}})
   return Handle(resp,201,'Invoice generated successfully',{result,ordereditems:resultingItems});
  } catch (error) {
+  console.log(error)
   return Handle(resp,500,"Internal Server Error",null,error)
  }
 })
@@ -432,6 +434,42 @@ Routes.get("/getalltransactions/:id",checkuserdetails,async(req,resp)=>{
     const result=await Transaction.find({shopkeeperId:req.user._id,customerId:id})
     if(!result || result.length === 0) return Handle(response,404,"Transaction list is empty")
     return Handle(resp,202,"Transactions fetched successfully",result)
+  } catch (error) {
+    return Handle(resp,500,"Internal Server Error",null,error)
+  }
+})
+Routes.get("/getalltransactions/:id",checkuserdetails,async(req,resp)=>{
+  try {
+    const {id} =req.params
+    if(!id || !mongoose.isValidObjectId(id)) return Handle(resp,404,"Customer is not valid")
+
+    const existingCustomer=await Customer.findOne({_id:id})
+    if(!existingCustomer) return Handle(resp,404,"Customer not found")
+
+    const result=await Transaction.find({shopkeeperId:req.user._id,customerId:id})
+    if(!result || result.length === 0) return Handle(response,404,"Transaction list is empty")
+    return Handle(resp,202,"Transactions fetched successfully",result)
+  } catch (error) {
+    return Handle(resp,500,"Internal Server Error",null,error)
+  }
+})
+
+Routes.post("/addpayment/:id",checkuserdetails,async(req,resp)=>{
+  try {
+    const {RecieptNo,payment,Description}=req.body
+    if(!RecieptNo || !payment) return Handle(resp,404,"Field is Empty")
+
+    const {id}=req.params
+    if(!id ||!mongoose.isValidObjectId(id)) return Handle(resp,404,"Customer is not valid")
+    
+    const existingCustomer=await Customer.findOne({_id:id,customerof:req.user._id})
+    if(!existingCustomer) return Handle(resp,404,"Customer is not found in your list")
+
+
+    existingCustomer.balance-=payment
+    const updatedCustomer=await Customer.updateOne({_id:id,customerof:req.user._id},{$set:{balance:existingCustomer.balance}})
+    const result=await Payment.create({shopkeeperId:req.user._id,customerId:id,RecieptNo,payment,Description})
+    return Handle(resp,201,"Customer updated successfully",{updatedCustomer,result})
   } catch (error) {
     return Handle(resp,500,"Internal Server Error",null,error)
   }

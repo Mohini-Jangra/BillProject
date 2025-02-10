@@ -67,6 +67,7 @@ const NewInvoice = ({setinvoices}) => {
             }
         })     
         const result=await response.json()
+        console.log(result)
         alert(result?.message)
         if(response.status===201){
             setinvoices(result.data)
